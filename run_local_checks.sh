@@ -8,7 +8,7 @@ echo "Running local validation for $(basename "$PWD")..."
 
 pdm run ruff check src tests
 pdm run black --check src tests
-pdm run mypy src
+pdm run mypy src tests
 pdm run pytest -m "unit or functional" -q
 
 echo "All local checks passed!"

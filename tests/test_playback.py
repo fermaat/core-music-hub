@@ -104,11 +104,11 @@ def test_stop_clears_current(song: Song, song_path: Path) -> None:
         pb = Playback()
         pb.play(song, song_path)
         # Manually set _current to simulate it was set
-        pb._current = song  # type: ignore[attr-defined]
+        pb._current = song
 
         mock_sd.get_stream.side_effect = Exception("no stream")
         pb.stop()
-        assert pb._current is None  # type: ignore[attr-defined]
+        assert pb._current is None
 
 
 # ---------------------------------------------------------------------------

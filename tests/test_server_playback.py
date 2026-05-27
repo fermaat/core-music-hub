@@ -1,7 +1,7 @@
 """Functional tests for POST /play, /stop, /next, GET /status via TestClient."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -91,19 +91,18 @@ def test_status_not_playing(test_client: TestClient) -> None:
 
 @pytest.mark.functional
 def test_status_playing(test_client: TestClient) -> None:
-    """Simulate active stream via monkeypatching is_playing on the playback singleton."""
+    """Simulate active stream by overriding sd.get_stream inside an existing patch."""
     pb = app_module.playback
-    original = pb.is_playing
+    pb._current = app_module.library.all()[0]
     try:
-        pb.is_playing = lambda: True  # type: ignore[method-assign]
-        pb._current = app_module.library.all()[0]  # type: ignore[attr-defined]
-        response = test_client.get("/status")
+        with patch("core_music_hub.playback.sd") as mock_sd:
+            mock_sd.get_stream.return_value = MagicMock(active=True)
+            response = test_client.get("/status")
         assert response.status_code == 200
         assert response.json()["playing"] is True
         assert response.json()["current"]["id"] == "cocodrilo"
     finally:
-        pb.is_playing = original  # type: ignore[method-assign]
-        pb._current = None  # type: ignore[attr-defined]
+        pb._current = None
 
 
 # ---------------------------------------------------------------------------
