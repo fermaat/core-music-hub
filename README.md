@@ -1,48 +1,86 @@
-# Python Package Template
+# core-music-hub
 
-A lightweight, opinionated template for new Python projects.
+HTTP service for local audio playback. Lets clients request playback of audio files
+from a local catalog by id, alias, mood, or tags.
 
-It ships with:
-- `pyproject.toml` (PDM, `src/` layout, `pdm-backend`)
-- `core-utils` wired in as a base dependency (shared `CoreSettings`, logger,
-  profiler)
-- `settings.py` subclassing `CoreSettings`
-- Tooling: `ruff`, `black`, `mypy`, `pytest` + coverage
-- Local validation (`run_local_checks.sh`) and GitHub Actions CI
+Part of the Fante infrastructure stack — sibling of `core-llm-bridge` and
+`core-speech-io-hub`.
+
+## Use cases
+
+1. **Jukebox** — `fante` asks the service to play a song by alias  
+   (e.g. `{"alias": "el cocodrilo"}` → plays the right track).
+2. **Mood score** — narrator requests `{"mood": "tension"}` → service picks a matching song.
+
+## Requirements
+
+- Python 3.12
+- `ffmpeg` for MP3 decoding via pydub:
+  - macOS: `brew install ffmpeg`
+  - Linux: `apt install ffmpeg`
 
 ## Quick start
 
-1. Create your new repo from this template (or copy its contents into it).
-2. Rename the package `src/package_name/` → `src/<your_package>/` and update
-   every `package_name` / `package-name` reference:
-   - `[project].name` in `pyproject.toml`
-   - `[tool.ruff.lint.isort].known-first-party`
-   - imports in `tests/`
-3. Fill in `[project]` metadata in `pyproject.toml`: `description`, `version`,
-   `authors`; add runtime dependencies to `[project].dependencies`.
-4. Add project-specific fields in `src/<your_package>/settings.py`.
-5. Install and validate:
+```bash
+# Install dependencies
+pdm install
 
-   ```bash
-   make install-dev
-   make check
-   ```
+# Start the server (default: http://127.0.0.1:8600)
+pdm run python -m core_music_hub
 
-## Layout
+# Add songs — see data/songs/README.md for instructions
 
-```
-src/<package>/      package code
-  settings.py       Settings(CoreSettings) — env + .env loading
-  py.typed          PEP 561 marker (ships type hints)
-tests/
-  unit/             unit tests
-  integration/      integration tests
-  conftest.py       shared fixtures
-.github/workflows/  CI: ruff + black + mypy + pytest
+# Smoke test via CLI
+pdm run python -m core_music_hub.cli list
+pdm run python -m core_music_hub.cli play <alias>
+pdm run python -m core_music_hub.cli status
+pdm run python -m core_music_hub.cli stop
 ```
 
-## Dependencies
+## HTTP API
 
-Runtime deps are intentionally minimal: `core-utils`, `pydantic`,
-`pydantic-settings`. Add what each project needs — note `loguru` and `pyyaml`
-are already available transitively through `core-utils`.
+| Method | Path       | Description                               |
+|--------|------------|-------------------------------------------|
+| GET    | /health    | Liveness check                            |
+| GET    | /catalog   | List all songs (id, title, aliases, moods, tags) |
+| GET    | /status    | Current playback state                    |
+| POST   | /play      | Play a song by `id`, `alias`, `mood`, or `tags` |
+| POST   | /stop      | Stop playback                             |
+| POST   | /next      | Skip to a random other song               |
+
+### Example
+
+```bash
+curl -X POST http://127.0.0.1:8600/play \
+     -H 'Content-Type: application/json' \
+     -d '{"alias": "el cocodrilo"}'
+
+curl http://127.0.0.1:8600/status | python3 -m json.tool
+curl -X POST http://127.0.0.1:8600/stop
+```
+
+## Configuration
+
+| Env var              | Default         | Description                    |
+|----------------------|-----------------|--------------------------------|
+| `MUSIC_HOST`         | `127.0.0.1`     | Bind address                   |
+| `MUSIC_PORT`         | `8600`          | Bind port                      |
+| `MUSIC_CATALOG_DIR`  | `data/songs`    | Path to catalog dir            |
+| `ENVIRONMENT`        | `development`   | Inherited from `core-utils`    |
+| `LOG_LEVEL`          | `INFO`          | Inherited from `core-utils`    |
+
+Configuration is also read from `.env` / `.env.local` files.
+
+## Development
+
+```bash
+make install-dev    # install with dev extras
+make check          # ruff + black + mypy + pytest
+make test           # pytest only
+make format         # auto-format with black
+```
+
+## Catalog
+
+Audio files and their YAML index live in `data/songs/`. See
+[data/songs/README.md](data/songs/README.md) for instructions on adding songs.

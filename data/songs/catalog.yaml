@@ -1,0 +1,10 @@
+# Music catalog. See README.md in this folder for instructions.
+#
+# Each song:
+#   id:       short canonical id (also matches as an alias)
+#   title:    human-readable title (used in responses)
+#   file:     filename in this directory (MP3/WAV/OGG)
+#   aliases:  optional alternative names the user might request
+#   moods:    optional list of moods this song fits (calm, tension, happy, ...)
+#   tags:     optional free-form tags (animal, classic, lullaby, ...)
+songs: []
