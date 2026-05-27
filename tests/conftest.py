@@ -1,6 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
 import os
+import sys
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,13 @@ from fastapi.testclient import TestClient
 
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("LOG_LEVEL", "DEBUG")
+
+# Stub sounddevice if PortAudio is not available (CI without audio hardware).
+# Must run before any test module imports core_music_hub.playback.
+try:
+    import sounddevice  # noqa: F401
+except OSError:
+    sys.modules["sounddevice"] = MagicMock()
 
 
 @pytest.fixture(scope="session")

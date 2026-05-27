@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "core-music-hub"
-version = "0.1.2"
+version = "0.1.3"
 description = "HTTP service for local audio playback with alias/mood/tag catalog"
 readme = "README.md"
 license = {text = "MIT"}
