@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "core-music-hub"
-version = "0.1.0"
+version = "0.1.1"
 description = "HTTP service for local audio playback with alias/mood/tag catalog"
 readme = "README.md"
 license = {text = "MIT"}
@@ -23,7 +23,6 @@ dependencies = [
     "pydub>=0.25",
     "sounddevice>=0.5",
     "numpy>=2.0",
-    "simpleaudio>=1.0.4",
 ]
 
 [project.optional-dependencies]
@@ -76,7 +75,7 @@ disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
-module = ["pydub.*", "sounddevice.*", "simpleaudio.*"]
+module = ["pydub.*", "sounddevice.*"]
 ignore_missing_imports = true
 
 [tool.black]
